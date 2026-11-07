@@ -1,0 +1,25 @@
+# Local / production secret overrides
+config.local.php
+.env
+.env.*
+
+# Runtime logs
+logs/*.log
+*.log
+
+# SQLite lock/journal files
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Archives & backups
+*.zip
+*.tar.gz
+backups/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

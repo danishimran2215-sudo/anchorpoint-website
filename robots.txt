@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /includes/
+Disallow: /backups/
+Disallow: /thank-you
+
+Sitemap: https://anchorpointbiz.org/sitemap.xml

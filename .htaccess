@@ -1,0 +1,135 @@
+# ============================================================
+# Anchor Point Business Setup & Travel — .htaccess
+# Apache 2.4+ (cPanel / Production Hosting)
+# ============================================================
+
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS in production (skip localhost)
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$ [NC]
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Remove trailing slash (except root and real directories)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} /(.+)/$
+  RewriteRule ^ /%1 [L,R=301]
+
+  # ── Block sensitive files & directories ──────────────────
+  RewriteRule ^\.git - [F,L]
+  RewriteRule ^\.env - [F,L]
+  RewriteRule ^config(\.local|\.example)?\.php$ - [F,L]
+  RewriteRule ^router\.php$ - [F,L]
+  RewriteRule ^database\.sqlite$ - [F,L]
+  RewriteRule ^database\.sql$ - [F,L]
+  RewriteRule ^includes/ - [F,L]
+  RewriteRule ^logs/ - [F,L]
+  RewriteRule ^uploads/.*\.php$ - [F,L]
+
+  # ── Tours Legacy / Fallback Routes ───────────────────────
+  RewriteRule ^tours/?$ index.php [L]
+  RewriteRule ^tours/([a-z0-9-]+)/?$ tours/view.php?slug=$1 [L,QSA]
+
+  # ── Business Setup & Corporate Services ──────────────────
+  RewriteRule ^services/?$ services/index.php [L,QSA]
+  RewriteRule ^business-setup/?$ services/index.php [L,QSA]
+  RewriteRule ^services/([a-z0-9-]+)/?$ services/view.php?slug=$1 [L,QSA]
+
+  # ── Blog & SEO Knowledge Base ────────────────────────────
+  RewriteRule ^blog/?$ blog/index.php [L,QSA]
+  RewriteRule ^blog/([a-z0-9-]+)/?$ blog/post.php?slug=$1 [L,QSA]
+
+  # ── On-demand image fallbacks ────────────────────────────
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^uploads/activities/([a-z0-9-]+\.webp)$ api/activity-image.php?file=$1 [L,QSA]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^uploads/services/([a-z0-9-]+\.(jpg|jpeg|png|webp))$ api/service-image.php?file=$1 [L,QSA]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^uploads/attractions/([a-z0-9-]+\.(jpg|jpeg|png|webp))$ api/service-image.php?file=$1 [L,QSA]
+
+  # ── Skip if real file or directory exists ────────────────
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # ── Official Sitemap Routes ──────────────────────────────
+  RewriteRule ^(desert-safari|city-tours|cruise-dinner|watersports|tickets-attractions)/?$ tours/category.php?category_slug=$1 [L,QSA]
+  RewriteRule ^(desert-safari|city-tours|cruise-dinner|watersports|tickets-attractions)/([a-z0-9-]+)/?$ tours/view.php?category_slug=$1&slug=$2 [L,QSA]
+
+  RewriteRule ^book/?$                       book.php [L,QSA]
+  RewriteRule ^thank-you/?$                  thank-you.php [L,QSA]
+  RewriteRule ^(contact|about)/?$            contact.php [L,QSA]
+  RewriteRule ^(privacy|privacy-policy)/?$   privacy-policy.php [L,QSA]
+  RewriteRule ^terms/?$                      terms.php [L,QSA]
+  RewriteRule ^cancellation-policy/?$        cancellation-policy.php [L,QSA]
+  RewriteRule ^sitemap\.xml$                 sitemap.xml.php [L]
+
+  # ── Admin Panel Routes ───────────────────────────────────
+  RewriteRule ^admin/?$                      admin/index.php [L,QSA]
+  RewriteRule ^admin/login/?$                admin/login.php [L,QSA]
+  RewriteRule ^admin/logout/?$               admin/logout.php [L,QSA]
+  RewriteRule ^admin/dashboard/?$            admin/dashboard.php [L,QSA]
+  RewriteRule ^admin/tours/?$                admin/tours/index.php [L,QSA]
+  RewriteRule ^admin/tours/edit/?$           admin/tours/edit.php [L,QSA]
+  RewriteRule ^admin/tours/bookings/?$       admin/tours/bookings.php [L,QSA]
+  RewriteRule ^admin/services/?$             admin/services/index.php [L,QSA]
+  RewriteRule ^admin/services/edit/?$        admin/services/edit.php [L,QSA]
+  RewriteRule ^admin/blog/?$                 admin/blog/index.php [L,QSA]
+  RewriteRule ^admin/blog/edit/?$            admin/blog/edit.php [L,QSA]
+  RewriteRule ^admin/settings/?$             admin/settings/index.php [L,QSA]
+  RewriteRule ^admin/users/?$                admin/users/index.php [L,QSA]
+</IfModule>
+
+# ── Custom 404 ─────────────────────────────────────────────
+ErrorDocument 404 /404.php
+
+# ── Security Headers ───────────────────────────────────────
+<IfModule mod_headers.c>
+  Header unset X-Powered-By
+  Header always unset X-Powered-By
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.facebook.com https://challenges.cloudflare.com; frame-src https://www.google.com https://maps.google.com https://challenges.cloudflare.com https://www.youtube.com; worker-src blob:;"
+</IfModule>
+
+# ── Gzip Compression ───────────────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml image/svg+xml
+  AddOutputFilterByType DEFLATE application/xhtml+xml
+</IfModule>
+
+# ── Browser Caching (Core Web Vitals) ──────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html                    "access plus 1 hour"
+  ExpiresByType text/css                     "access plus 1 year"
+  ExpiresByType application/javascript       "access plus 1 year"
+  ExpiresByType image/webp                   "access plus 1 year"
+  ExpiresByType image/jpeg                   "access plus 1 year"
+  ExpiresByType image/png                    "access plus 1 year"
+  ExpiresByType image/svg+xml                "access plus 1 year"
+  ExpiresByType image/gif                    "access plus 1 year"
+  ExpiresByType image/ico                    "access plus 1 year"
+  ExpiresByType application/x-font-woff2     "access plus 1 year"
+  ExpiresByType font/woff2                   "access plus 1 year"
+</IfModule>
+
+# ── Block Common Exploit Scans ─────────────────────────────
+<IfModule mod_rewrite.c>
+  RewriteCond %{REQUEST_URI} wp-admin [NC]
+  RewriteRule ^ - [F,L]
+  RewriteCond %{REQUEST_URI} xmlrpc\.php [NC]
+  RewriteRule ^ - [F,L]
+  RewriteCond %{QUERY_STRING} (\.\./|%2e%2e%2f|%2e%2e/) [NC]
+  RewriteRule ^ - [F,L]
+</IfModule>
